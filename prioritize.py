@@ -351,4 +351,21 @@ def main():
         if parsed and (latest_dt is None or parsed > latest_dt):
             latest_dt = parsed
 
-    ref_time = get_reference
+    ref_time = get_reference_time(latest_logged_dt=latest_dt)
+
+    # Score all open complaints
+    scored = [calculate_priority(r, ref_time) for r in open_rows]
+
+    # Sort descending by priority score (secondary sort by pending hours if tied)
+    scored.sort(key=lambda x: (x["total_score"], x["pending_hours"]), reverse=True)
+
+    # Assign overall rank to each open complaint
+    for rank, item in enumerate(scored, 1):
+        item["rank"] = rank
+
+    # Display results and generate technician checklist
+    display_results(all_rows, scored, ref_time, source_filename=csv_path.name)
+
+
+if __name__ == "__main__":
+    main()

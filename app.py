@@ -84,15 +84,24 @@ def cleanup_old_resolved(rows, ref_time: datetime, retention_days: int = RETENTI
     return kept_rows, removed_count
 
 
-def generate_floor_word_doc(floor_id: str, tasks: list, ref_time: datetime) -> str:
+TECHNICIAN_ROLES = {
+    "Electrical": "Electrician",
+    "Plumbing": "Plumber",
+    "WiFi": "Network Technician",
+    "Furniture": "Carpenter",
+}
+
+
+def generate_work_order_word_doc(title: str, tasks: list, ref_time: datetime, show_floor: bool = True) -> str:
     """
     Generate a clean Word document (.doc) tailored strictly for technicians.
-    Contains only actionable information: Checkbox, ID, Room, Category, Urgency, Logged Date/Time, and Notes space.
+    Contains only actionable information: Checkbox, ID, Room, (Floor), Category, Urgency, Logged Date/Time, and Notes space.
     Excludes all internal algorithm formulas, weights, and priority scores.
     """
     rows_html = []
     for t in tasks:
         cid = t.get("complaint_id", "")
+        fl = t.get("floor", "")
         room = t.get("room_no", "") or "N/A"
         cat = t.get("category", "")
         urg = t.get("urgency", "Normal") or "Normal"
@@ -102,17 +111,21 @@ def generate_floor_word_doc(floor_id: str, tasks: list, ref_time: datetime) -> s
         urg_style = "color: #b71c1c; font-weight: bold;" if is_breached or urg.lower() == "high" else "color: #222;"
         urg_text = "OVERDUE (>48h)" if is_breached else urg
 
+        floor_td = f'<td style="border: 1px solid #bbb; padding: 10px;">Floor {fl}</td>' if show_floor else ""
+
         rows_html.append(f"""
         <tr>
           <td style="text-align: center; font-size: 15pt; border: 1px solid #bbb; padding: 10px;">[ &nbsp; ]</td>
           <td style="border: 1px solid #bbb; padding: 10px; font-weight: bold; font-size: 12pt;">{cid}</td>
+          {floor_td}
           <td style="border: 1px solid #bbb; padding: 10px; font-weight: bold;">{room}</td>
           <td style="border: 1px solid #bbb; padding: 10px;">{cat}</td>
           <td style="border: 1px solid #bbb; padding: 10px; {urg_style}">{urg_text}</td>
           <td style="border: 1px solid #bbb; padding: 10px; color: #555;">{logged}</td>
-          <td style="border: 1px solid #bbb; padding: 10px; width: 200px;"></td>
+          <td style="border: 1px solid #bbb; padding: 10px; width: 180px;"></td>
         </tr>""")
 
+    floor_th = '<th style="width: 80px;">Floor</th>' if show_floor else ""
     table_rows_str = "\n".join(rows_html)
     date_str = ref_time.strftime("%d %b %Y, %I:%M %p")
 
@@ -120,7 +133,7 @@ def generate_floor_word_doc(floor_id: str, tasks: list, ref_time: datetime) -> s
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
 <meta charset="utf-8">
-<title>Work Order - Floor {floor_id}</title>
+<title>{title}</title>
 <style>
   body {{
     font-family: Calibri, Arial, sans-serif;
@@ -170,21 +183,22 @@ def generate_floor_word_doc(floor_id: str, tasks: list, ref_time: datetime) -> s
 </head>
 <body>
   <div class="header-box">
-    <h2>HOSTEL MAINTENANCE WORK ORDER -- FLOOR {floor_id}</h2>
+    <h2>HOSTEL MAINTENANCE WORK ORDER -- {title.upper()}</h2>
     <div class="meta-info">
       <strong>Hostel:</strong> Girls' Hostel-3 (GH-3), IIITA &nbsp;&nbsp;|&nbsp;&nbsp;
       <strong>Date:</strong> {date_str} &nbsp;&nbsp;|&nbsp;&nbsp;
-      <strong>Total Tasks on Floor:</strong> {len(tasks)}
+      <strong>Total Tasks:</strong> {len(tasks)}
     </div>
   </div>
 
-  <p><em>Please complete repairs on this floor and mark tick [✓] in the Done box once resolved.</em></p>
+  <p><em>Please attend to the tasks below and mark tick [✓] in the Done box once resolved.</em></p>
 
   <table>
     <thead>
       <tr>
         <th style="width: 55px; text-align: center;">Done</th>
         <th style="width: 70px;">ID</th>
+        {floor_th}
         <th style="width: 85px;">Room</th>
         <th style="width: 120px;">Category</th>
         <th style="width: 130px;">Urgency</th>
@@ -207,23 +221,24 @@ def generate_floor_word_doc(floor_id: str, tasks: list, ref_time: datetime) -> s
 </html>"""
 
 
-def generate_floor_whatsapp_text(floor_id: str, tasks: list) -> str:
-    """Generate concise, clean WhatsApp message for a technician for a specific floor."""
+def generate_whatsapp_text(title: str, tasks: list, include_floor: bool = False) -> str:
+    """Generate concise, clean WhatsApp message for technicians without algorithm math."""
     lines = [
-        f"*GH-3 HOSTEL MAINTENANCE -- FLOOR {floor_id}*",
+        f"*GH-3 HOSTEL MAINTENANCE -- {title.upper()}*",
         f"Tasks to attend ({len(tasks)}):",
         "------------------------------------",
     ]
     for t in tasks:
         cid = t.get("complaint_id", "")
         room = t.get("room_no", "") or "N/A"
+        fl_str = f"Floor {t.get('floor', '')} | " if include_floor else ""
         cat = t.get("category", "")
         urg = t.get("urgency", "") or "Normal"
         is_breached = t.get("is_sla_breached", False)
         status_tag = "⚠️ OVERDUE" if is_breached else urg
-        lines.append(f"[ ] *{cid}* | Room *{room}* | {cat} ({status_tag})")
+        lines.append(f"• *{cid}* | {fl_str}Room *{room}* — {cat} ({status_tag})")
     lines.append("------------------------------------")
-    lines.append("Please complete all tasks on this floor before moving.")
+    lines.append("Please complete and confirm upon resolution.")
     return "\n".join(lines)
 
 
@@ -442,6 +457,29 @@ with tab1:
     if not scored_open:
         st.success("🎉 All complaints are resolved! No pending tasks.")
     else:
+        # Priority dispatch actions (allows warden to dispatch in priority order directly)
+        priority_doc = generate_work_order_word_doc("Overall Priority Queue (Urgent First)", scored_open, ref_time, show_floor=True)
+        priority_wa = generate_whatsapp_text("Overall Priority Queue (Urgent First)", scored_open, include_floor=True)
+
+        p_col1, p_col2 = st.columns([1, 1])
+        with p_col1:
+            st.download_button(
+                label="📥 Download Priority Work Order (.doc)",
+                data=priority_doc,
+                file_name="priority_work_order_urgent_first.doc",
+                mime="application/msword",
+                use_container_width=True,
+                help="Download all open complaints sorted strictly by priority/urgency in Word format.",
+            )
+        with p_col2:
+            st.link_button(
+                label="📲 WhatsApp Priority List",
+                url=f"https://wa.me/?text={urllib.parse.quote(priority_wa)}",
+                use_container_width=True,
+            )
+
+        st.markdown("")
+
         # Quick resolve action bar
         with st.container():
             res_col1, res_col2 = st.columns([3, 1])
@@ -497,8 +535,8 @@ with tab1:
 # TAB 2: TECHNICIAN FLOOR CHECKLIST & SEND
 # ------------------------------------------------------------------------------
 with tab2:
-    st.subheader("Technician Work Orders (Floor-by-Floor)")
-    st.caption("Organized floor-by-floor so technicians complete all tasks on one level before moving ladders and tools.")
+    st.subheader("Technician Work Orders (Floor & Task-Divided)")
+    st.caption("Select a floor to view and dispatch tasks divided by technician trade (Electrician, Plumber, etc.).")
 
     if not scored_open:
         st.info("No open complaints. Nothing to dispatch!")
@@ -516,71 +554,64 @@ with tab2:
 
         sorted_floor_keys = sorted(floors_dict.keys(), key=floor_num_key)
 
-        # Master combined download option
-        all_floors_doc = generate_floor_word_doc("ALL FLOORS", scored_open, ref_time)
-        master_col1, master_col2 = st.columns([1, 1])
-        with master_col1:
-            st.download_button(
-                label="📄 Download All Floors Combined Work Order (.doc)",
-                data=all_floors_doc,
-                file_name="technician_all_floors_work_order.doc",
-                mime="application/msword",
-                use_container_width=True,
-            )
-        with master_col2:
-            all_wa_lines = ["*GH-3 HOSTEL MAINTENANCE -- ALL FLOORS SUMMARY*", ""]
-            for fl_k in sorted_floor_keys:
-                all_wa_lines.append(generate_floor_whatsapp_text(fl_k, floors_dict[fl_k]))
-                all_wa_lines.append("")
-            all_wa_text = "\n".join(all_wa_lines).strip()
-            st.link_button(
-                label="📲 WhatsApp All Floors Summary",
-                url=f"https://wa.me/?text={urllib.parse.quote(all_wa_text)}",
-                use_container_width=True,
-            )
+        # Floor selector so the user only sees one floor at a time
+        selected_floor = st.radio(
+            "Choose Floor to Dispatch:",
+            options=sorted_floor_keys,
+            horizontal=True,
+            format_func=lambda fl: f"Floor {fl} ({len(floors_dict[fl])} pending)",
+        )
 
-        st.markdown("---")
+        tasks = sorted(
+            floors_dict[selected_floor],
+            key=lambda x: (x["total_score"], x["pending_hours"]),
+            reverse=True,
+        )
+        floor_label = f"Floor {selected_floor}"
 
-        # Per-Floor Sections with Separate Download & Send Buttons
-        for fl in sorted_floor_keys:
-            tasks = sorted(floors_dict[fl], key=lambda x: (x["total_score"], x["pending_hours"]), reverse=True)
-            floor_label = f"Floor {fl}"
+        with st.container(border=True):
+            st.markdown(f"### 🏢 {floor_label} &nbsp; `({len(tasks)} Total Pending Tasks)`")
+            st.write("")
 
-            with st.container(border=True):
-                head_col, dl_col, wa_col = st.columns([2, 1.5, 1.5])
-                with head_col:
-                    st.markdown(f"### 🏢 {floor_label} &nbsp; `({len(tasks)} Pending Tasks)`")
+            # Subdivide floor tasks by category / technician trade
+            trades_on_floor = {}
+            for t in tasks:
+                trades_on_floor.setdefault(t["category"], []).append(t)
 
-                floor_doc = generate_floor_word_doc(fl, tasks, ref_time)
-                with dl_col:
+            for cat, trade_tasks in trades_on_floor.items():
+                role_name = TECHNICIAN_ROLES.get(cat, f"{cat} Technician")
+                st.markdown(f"#### 🔧 {role_name} &nbsp; `({len(trade_tasks)} Task{'s' if len(trade_tasks) > 1 else ''})`")
+
+                t_col1, t_col2 = st.columns([1, 1])
+                trade_doc = generate_work_order_word_doc(f"{floor_label} - {role_name} ({cat})", trade_tasks, ref_time, show_floor=False)
+                trade_wa = generate_whatsapp_text(f"{floor_label} - {role_name}", trade_tasks, include_floor=False)
+
+                with t_col1:
                     st.download_button(
-                        label=f"📥 Download {floor_label} Work Order (.doc)",
-                        data=floor_doc,
-                        file_name=f"technician_floor_{fl}_work_order.doc",
+                        label=f"📥 Download {role_name} List (.doc)",
+                        data=trade_doc,
+                        file_name=f"floor_{selected_floor}_{role_name.lower().replace(' ', '_')}.doc",
                         mime="application/msword",
-                        key=f"dl_floor_{fl}",
+                        key=f"dl_{selected_floor}_{cat}",
                         use_container_width=True,
                     )
-
-                with wa_col:
-                    floor_wa_text = generate_floor_whatsapp_text(fl, tasks)
-                    floor_wa_url = f"https://wa.me/?text={urllib.parse.quote(floor_wa_text)}"
+                with t_col2:
                     st.link_button(
-                        label=f"📲 WhatsApp {floor_label}",
-                        url=floor_wa_url,
-                        key=f"wa_floor_{fl}",
+                        label=f"📲 WhatsApp {role_name}",
+                        url=f"https://wa.me/?text={urllib.parse.quote(trade_wa)}",
+                        key=f"wa_{selected_floor}_{cat}",
                         use_container_width=True,
                     )
 
-                # Show clean task list without internal algorithm math
-                for t in tasks:
+                # List the tasks for this technician WITHOUT tick box
+                for t in trade_tasks:
                     cid = t["complaint_id"]
                     room = t["room_no"]
-                    cat = t["category"]
                     urg = t["urgency"] or "Normal"
                     logged = t["logged_datetime"]
                     sla_tag = "🚨 OVERDUE (>48h)" if t["is_sla_breached"] else "✅ OK"
                     st.markdown(
-                        f"- `[ ]` **{cid}** | Room **{room}** — **{cat}** &nbsp;|&nbsp; Urgency: `{urg}` &nbsp;|&nbsp; "
+                        f"- **{cid}** | Room **{room}** — **{cat}** &nbsp;|&nbsp; Urgency: `{urg}` &nbsp;|&nbsp; "
                         f"Logged: `{logged}` &nbsp;|&nbsp; `{sla_tag}`"
                     )
+                st.write("")

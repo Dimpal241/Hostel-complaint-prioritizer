@@ -18,7 +18,7 @@ Complaints logged 3 or 4 days ago easily get buried once two new pages of entrie
 
 After having a look at the register, I initially assumed the caretaker strictly followed the "Urgent" tag written next to complaints in the register. However, she told me that students mark almost every minor issue (like a flickering corridor tube light or slow Wi-Fi) as "Urgent," so she actually ignores the student's urgency tag and prioritizes based on issue category and daily-use/safety impact (such as water leakage, geyser failure, or electrical short circuits) instead.
 
-This made me realize the amount of work that she had to put through this when it could be simplified easily with a tool that prioritizes urgent tasks and also segregates them according to floors making work easier for both the caretaker and the technicians while also ensuring no delays. And according to the caretaker's statement about false urgency, instead of relying only on the urgency column and pending hours, I decided to add category-based priority weights in my tool so critical plumbing and electrical complaints automatically rank higher.
+This made me realize the amount of work that she had to put through this when it could be simplified easily with a tool that prioritizes urgent tasks and also segregates them according to floors making work easier for both the caretaker and the technicians while also ensuring no delays. And according to the caretaker's statement about false urgency, instead of relying only on the urgency column and pending hours, I decided to let the warden decide the urgency.
 
 
 **How data.csv Was Collected**
