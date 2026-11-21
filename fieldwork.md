@@ -25,7 +25,7 @@ This made me realize the amount of work that she had to put through this when it
 
 With my caretaker's permission, I sat at her for 25 minutes and transcribed 27 real complaint entries from the current physical maintenance register covering the past 11 days.
 
-To protect student privacy, I omitted student names and exact room numbers, recording only complaint_id, floor, category, urgency, logged_datetime, resolved_datetime, and status.
+To protect student privacy, I omitted student names, recording only complaint_id, room numbers, floor, category, urgency, logged_datetime, resolved_datetime, and status.
 
 Natural imperfections from the register—such as missing urgency tags on a few rows and unresolved complaints spanning multiple days were also collected.
 
