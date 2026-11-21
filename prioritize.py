@@ -174,8 +174,8 @@ def load_complaints(filepath: Path):
     return all_rows, open_rows
 
 
-def display_results(all_rows, scored_complaints, ref_time, top_n=5):
-    """Print the summary stats and formatted Top N priority table."""
+def display_results(all_rows, scored_complaints, ref_time, top_n=None):
+    """Print the summary stats and formatted priority table for open complaints."""
     total_count = len(all_rows)
     open_count = len(scored_complaints)
     breached_count = sum(1 for c in scored_complaints if c["is_sla_breached"])
@@ -193,9 +193,14 @@ def display_results(all_rows, scored_complaints, ref_time, top_n=5):
         print("\nNo open complaints found. All issues are resolved!")
         return
 
-    # Print Top N Table
-    display_rows = scored_complaints[:top_n]
-    print(f"\n>>> Top {len(display_rows)} Highest-Priority Complaints for Dispatch:\n")
+    # Determine rows to display (all open complaints by default, or top_n if specified)
+    display_rows = scored_complaints[:top_n] if top_n is not None else scored_complaints
+    heading = (
+        f"\n>>> Top {len(display_rows)} Highest-Priority Complaints for Dispatch:\n"
+        if top_n is not None
+        else f"\n>>> All {len(display_rows)} Unresolved (Open) Complaints Ranked by Priority:\n"
+    )
+    print(heading)
 
     headers = ["Rank", "ID", "Floor", "Category", "Urgency", "Pending", "SLA Status", "Score"]
     col_widths = [5, 6, 7, 13, 9, 11, 12, 7]
@@ -258,8 +263,8 @@ def main():
     # Sort descending by priority score (secondary sort by pending hours if tied)
     scored.sort(key=lambda x: (x["total_score"], x["pending_hours"]), reverse=True)
 
-    # Display results
-    display_results(all_rows, scored, ref_time, top_n=5)
+    # Display results (all unresolved complaints ranked from highest to lowest)
+    display_results(all_rows, scored, ref_time)
 
 
 if __name__ == "__main__":
