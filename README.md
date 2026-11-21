@@ -148,3 +148,6 @@ Total Open Tasks   : 15
 * `technician_checklist.txt` — Generated printable floor-by-floor dispatch list
 * `fieldwork.md` — On-site observation notes and design rationale
 * `requirements.txt` — Python dependencies (`streamlit`, `pandas`)
+
+## Demo Video
+[Watch the Project Walkthrough Demo]https://drive.google.com/file/d/12bDMXCdzL_Sd-f2Fos6S3EW1UaAmfzXY/view?usp=sharing
