@@ -88,8 +88,6 @@ def get_reference_time(latest_logged_dt=None):
             return parsed
 
     now = datetime.now()
-    # If the system clock is earlier than the latest dataset entry (e.g. running on an older date machine),
-    # use the latest logged datetime + 1 hour so pending hours are positive and accurate.
     if latest_logged_dt and now < latest_logged_dt:
         return latest_logged_dt
 
@@ -100,7 +98,8 @@ def calculate_priority(row: dict, ref_time: datetime) -> dict:
     """Calculate priority score and metadata for an open complaint."""
     cid = row.get("complaint_id", "").strip() or "UNKNOWN"
     floor = row.get("floor", "").strip() or "N/A"
-    
+    room_no = row.get("room_no", "").strip() or "N/A"
+
     # 1. Category Base Weight (case-insensitive)
     raw_cat = row.get("category", "").strip()
     matched_cat = next(
@@ -138,6 +137,7 @@ def calculate_priority(row: dict, ref_time: datetime) -> dict:
     return {
         "complaint_id": cid,
         "floor": floor,
+        "room_no": room_no,
         "category": category,
         "urgency": urgency_label,
         "logged_datetime": row.get("logged_datetime", "").strip(),
@@ -171,13 +171,11 @@ def generate_floor_checklist(scored_complaints, ref_time, source_filename="data.
     Generate a floor-by-floor dispatch checklist for visiting technicians.
     Tasks within each floor are sorted descending by priority score.
     """
-    # Group complaints by floor
     floors_dict = {}
     for item in scored_complaints:
         fl = str(item.get("floor", "Unknown")).strip()
         floors_dict.setdefault(fl, []).append(item)
 
-    # Sort floors numerically if possible, otherwise alphabetically
     def floor_sort_key(fl_str):
         try:
             return (0, int(fl_str))
@@ -187,13 +185,13 @@ def generate_floor_checklist(scored_complaints, ref_time, source_filename="data.
     sorted_floors = sorted(floors_dict.keys(), key=floor_sort_key)
 
     lines = []
-    lines.append("=" * 82)
-    lines.append("        HOSTEL MAINTENANCE -- FLOOR-BY-FLOOR TECHNICIAN CHECKLIST        ")
-    lines.append("=" * 82)
+    lines.append("=" * 94)
+    lines.append("           HOSTEL MAINTENANCE -- FLOOR-BY-FLOOR TECHNICIAN CHECKLIST           ")
+    lines.append("=" * 94)
     lines.append(f"Generated Snapshot : {ref_time.strftime('%Y-%m-%d %H:%M')}")
     lines.append(f"Source Data        : {source_filename}")
     lines.append(f"Total Open Tasks   : {len(scored_complaints)}")
-    lines.append("=" * 82)
+    lines.append("=" * 94)
 
     for fl in sorted_floors:
         fl_tasks = sorted(
@@ -203,11 +201,12 @@ def generate_floor_checklist(scored_complaints, ref_time, source_filename="data.
         )
         floor_label = f"FLOOR {fl}" if not fl.lower().startswith("floor") else fl.upper()
         lines.append(f"\n[{floor_label}] - {len(fl_tasks)} Task(s) Pending")
-        lines.append("-" * 82)
+        lines.append("-" * 94)
 
         for task in fl_tasks:
             rank_str = f"#{task.get('rank', '-')}"
             cid = task["complaint_id"]
+            room = f"Room {task.get('room_no', 'N/A')}"
             cat = task["category"]
             urg = task["urgency"]
             pending = f"{task['pending_hours']:.1f} hrs"
@@ -215,12 +214,12 @@ def generate_floor_checklist(scored_complaints, ref_time, source_filename="data.
             sla_tag = "[SLA BREACHED]" if task["is_sla_breached"] else "[SLA OK]"
 
             lines.append(
-                f"  [ ] {rank_str:<4} | {cid:<4} | {cat:<11} | Urgency: {urg:<6} | {pending:>9} | Score: {score:>5} | {sla_tag}"
+                f"  [ ] {rank_str:<4} | {cid:<4} | {room:<9} | {cat:<11} | Urgency: {urg:<6} | {pending:>9} | Score: {score:>5} | {sla_tag}"
             )
 
-    lines.append("\n" + "=" * 82)
-    lines.append("                      END OF TECHNICIAN DISPATCH LIST                      ")
-    lines.append("=" * 82 + "\n")
+    lines.append("\n" + "=" * 94)
+    lines.append("                         END OF TECHNICIAN DISPATCH LIST                         ")
+    lines.append("=" * 94 + "\n")
 
     return "\n".join(lines)
 
@@ -250,7 +249,7 @@ def load_complaints(filepath: Path):
 
         for row in reader:
             if not any(row.values()):
-                continue  # skip empty lines
+                continue
             all_rows.append(row)
             status = row.get("status", "").strip().lower()
             if status == "open":
@@ -272,21 +271,20 @@ def display_results(all_rows, scored_complaints, ref_time, source_filename="data
         else "N/A (no resolved complaints)"
     )
 
-    print("\n" + "=" * 76)
-    print("      HOSTEL MAINTENANCE COMPLAINT PRIORITIZER (GH-3, IIITA)      ")
-    print("=" * 76)
+    print("\n" + "=" * 84)
+    print("         HOSTEL MAINTENANCE COMPLAINT PRIORITIZER (GH-3, IIITA)         ")
+    print("=" * 84)
     print(f"Reference Timestamp : {ref_time.strftime('%Y-%m-%d %H:%M')}")
     print(f"Total Complaints    : {total_count}")
     print(f"Open Complaints     : {open_count}")
     print(f"SLA Breached (>48h) : {breached_count} (Urgent Caretaker Attention Needed)")
     print(f"Avg Resolution Time : {avg_res_str}")
-    print("=" * 76)
+    print("=" * 84)
 
     if not scored_complaints:
         print("\nNo open complaints found. All issues are resolved!")
         return
 
-    # Determine rows to display (all open complaints by default, or top_n if specified)
     display_rows = scored_complaints[:top_n] if top_n is not None else scored_complaints
     heading = (
         f"\n>>> Top {len(display_rows)} Highest-Priority Complaints for Dispatch:\n"
@@ -295,8 +293,8 @@ def display_results(all_rows, scored_complaints, ref_time, source_filename="data
     )
     print(heading)
 
-    headers = ["Rank", "ID", "Floor", "Category", "Urgency", "Pending", "SLA Status", "Score"]
-    col_widths = [5, 6, 7, 13, 9, 11, 12, 7]
+    headers = ["Rank", "ID", "Floor", "Room", "Category", "Urgency", "Pending", "SLA Status", "Score"]
+    col_widths = [5, 6, 7, 6, 13, 9, 11, 12, 7]
 
     header_line = " | ".join(f"{h:<{w}}" for h, w in zip(headers, col_widths))
     separator_line = "-+-".join("-" * w for w in col_widths)
@@ -311,6 +309,7 @@ def display_results(all_rows, scored_complaints, ref_time, source_filename="data
             f"#{rank}",
             item["complaint_id"],
             f"Floor {item['floor']}",
+            item["room_no"],
             item["category"],
             item["urgency"],
             pending_str,
@@ -323,11 +322,9 @@ def display_results(all_rows, scored_complaints, ref_time, source_filename="data
     print("-" * len(header_line))
     print(f"Scoring breakdown: Category(15-40) + Urgency(5-15) + (Hours * {PENDING_HOURS_MULTIPLIER}) + SLA Bonus({int(SLA_BREACH_BONUS)})\n")
 
-    # Generate and display Floor-by-Floor Technician Checklist
     checklist_text = generate_floor_checklist(scored_complaints, ref_time, source_filename=source_filename)
     print(checklist_text)
 
-    # Save to file
     saved_file = save_checklist(checklist_text, CHECKLIST_OUTPUT_FILE)
     print(f"[Exported printable technician checklist to: {saved_file.resolve()}]\n")
 
@@ -337,7 +334,6 @@ def display_results(all_rows, scored_complaints, ref_time, source_filename="data
 # ==============================================================================
 
 def main():
-    # Allow custom CSV path via command line argument
     if len(sys.argv) > 1 and sys.argv[1] not in ("-h", "--help"):
         csv_path = Path(sys.argv[1])
     elif len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
@@ -349,28 +345,10 @@ def main():
 
     all_rows, open_rows = load_complaints(csv_path)
 
-    # Find the latest logged timestamp in the dataset
     latest_dt = None
     for r in all_rows:
         parsed = parse_datetime(r.get("logged_datetime", ""))
         if parsed and (latest_dt is None or parsed > latest_dt):
             latest_dt = parsed
 
-    ref_time = get_reference_time(latest_logged_dt=latest_dt)
-
-    # Score all open complaints
-    scored = [calculate_priority(r, ref_time) for r in open_rows]
-
-    # Sort descending by priority score (secondary sort by pending hours if tied)
-    scored.sort(key=lambda x: (x["total_score"], x["pending_hours"]), reverse=True)
-
-    # Assign overall rank to each open complaint
-    for rank, item in enumerate(scored, 1):
-        item["rank"] = rank
-
-    # Display results and generate technician checklist
-    display_results(all_rows, scored, ref_time, source_filename=csv_path.name)
-
-
-if __name__ == "__main__":
-    main()
+    ref_time = get_reference

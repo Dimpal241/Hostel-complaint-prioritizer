@@ -1,28 +1,23 @@
-complaint_id,floor,category,urgency,logged_datetime,resolved_datetime,status
-C33,0,Plumbing,High,2026-11-11 08:25,2026-11-11 16:40,Resolved
-C34,1,WiFi,High,2026-11-11 19:10,2026-11-13 11:20,Resolved
-C35,2,Electrical,Medium,2026-11-12 09:45,2026-11-12 18:10,Resolved
-C36,3,Furniture,Low,2026-11-12 14:15,2026-11-15 12:30,Resolved
-C37,0,Plumbing,High,2026-11-13 07:50,2026-11-13 15:05,Resolved
-C38,2,WiFi,Medium,2026-11-13 21:30,2026-11-15 17:45,Resolved
-C39,1,Electrical,High,2026-11-14 10:12,2026-11-14 14:55,Resolved
-C40,3,Furniture,Medium,2026-11-14 16:40,2026-11-17 13:10,Resolved
-C41,0,Plumbing,High,2026-11-15 08:05,2026-11-15 19:20,Resolved
-C42,1,WiFi,Low,2026-11-15 20:15,2026-11-18 11:00,Resolved
-C43,2,Electrical,Low,2026-11-16 09:30,,Open
-C44,0,Plumbing,Medium,2026-11-16 13:45,,Open
-C45,1,Furniture,High,2026-11-17 11:20,2026-11-18 16:15,Resolved
-C46,3,Plumbing,Low,2026-11-17 18:05,,Open
-C47,0,Electrical,High,2026-11-18 07:40,,Open
-C48,1,Plumbing,High,2026-11-18 12:15,,Open
-C49,2,WiFi,High,2026-11-18 22:10,,Open
-C50,3,Furniture,Low,2026-11-19 09:05,,Open
-C51,0,Electrical,,2026-11-19 14:50,,Open
-C52,2,Plumbing,Medium,2026-11-19 17:30,,Open
-C53,3,WiFi,High,2026-11-20 08:15,,Open
-C54,1,Furniture,Medium,2026-11-20 11:40,,Open
-C55,2,Electrical,High,2026-11-20 19:25,,Open
-C56,0,Plumbing,High,2026-11-21 07:35,,Open
-C57,1,WiFi,Medium,2026-11-21 10:10,,Open
-C58,2,Furniture,High,2026-11-21 13:20,,Open
-C59,3,Electrical,Low,2026-11-21 15:45,,Open
+complaint_id,floor,room_no,category,urgency,logged_datetime,resolved_datetime,status
+C36,3,314,Furniture,Low,2026-11-12 14:15,2026-11-15 12:30,Resolved
+C38,2,208,WiFi,Medium,2026-11-13 21:30,2026-11-15 17:45,Resolved
+C40,3,305,Furniture,Medium,2026-11-14 16:40,2026-11-17 13:10,Resolved
+C41,0,004,Plumbing,High,2026-11-15 08:05,2026-11-15 19:20,Resolved
+C42,1,112,WiFi,Low,2026-11-15 20:15,2026-11-18 11:00,Resolved
+C43,2,215,Electrical,Low,2026-11-16 09:30,,Open
+C44,0,012,Plumbing,Medium,2026-11-16 13:45,2026-11-21 20:23,Resolved
+C45,1,103,Furniture,High,2026-11-17 11:20,2026-11-18 16:15,Resolved
+C46,3,319,Plumbing,Low,2026-11-17 18:05,,Open
+C47,0,009,Electrical,High,2026-11-18 07:40,,Open
+C48,1,117,Plumbing,High,2026-11-18 12:15,,Open
+C49,2,204,WiFi,High,2026-11-18 22:10,,Open
+C50,3,302,Furniture,Low,2026-11-19 09:05,,Open
+C51,0,016,Electrical,,2026-11-19 14:50,,Open
+C52,2,211,Plumbing,Medium,2026-11-19 17:30,,Open
+C53,3,310,WiFi,High,2026-11-20 08:15,,Open
+C54,1,108,Furniture,Medium,2026-11-20 11:40,,Open
+C55,2,219,Electrical,High,2026-11-20 19:25,,Open
+C56,0,002,Plumbing,High,2026-11-21 07:35,,Open
+C57,1,115,WiFi,Medium,2026-11-21 10:10,,Open
+C58,2,206,Furniture,High,2026-11-21 13:20,,Open
+C59,3,317,Electrical,Low,2026-11-21 15:45,,Open
