@@ -1,10 +1,15 @@
 complaint_id,floor,room_no,category,urgency,logged_datetime,resolved_datetime,status
+C31,1,105,Plumbing,High,2026-11-10 09:10,2026-11-11 14:20,Resolved
+C32,0,007,Electrical,Medium,2026-11-10 15:40,2026-11-12 11:05,Resolved
+C33,2,213,WiFi,Low,2026-11-11 10:25,2026-11-14 16:50,Resolved
+C34,3,308,Plumbing,High,2026-11-11 18:15,2026-11-13 10:30,Resolved
+C35,1,119,Electrical,Low,2026-11-12 08:50,2026-11-14 15:15,Resolved
 C36,3,314,Furniture,Low,2026-11-12 14:15,2026-11-15 12:30,Resolved
 C38,2,208,WiFi,Medium,2026-11-13 21:30,2026-11-15 17:45,Resolved
 C40,3,305,Furniture,Medium,2026-11-14 16:40,2026-11-17 13:10,Resolved
 C41,0,004,Plumbing,High,2026-11-15 08:05,2026-11-15 19:20,Resolved
 C42,1,112,WiFi,Low,2026-11-15 20:15,2026-11-18 11:00,Resolved
-C43,2,215,Electrical,Low,2026-11-16 09:30,,Open
+C43,2,215,Electrical,Low,2026-11-16 09:30,2026-11-21 23:16,Resolved
 C44,0,012,Plumbing,Medium,2026-11-16 13:45,2026-11-21 20:23,Resolved
 C45,1,103,Furniture,High,2026-11-17 11:20,2026-11-18 16:15,Resolved
 C46,3,319,Plumbing,Low,2026-11-17 18:05,,Open
@@ -21,3 +26,5 @@ C56,0,002,Plumbing,High,2026-11-21 07:35,,Open
 C57,1,115,WiFi,Medium,2026-11-21 10:10,,Open
 C58,2,206,Furniture,High,2026-11-21 13:20,,Open
 C59,3,317,Electrical,Low,2026-11-21 15:45,,Open
+C60,1,212,Plumbing,High,2026-11-21 23:07,,Open
+C61,1,112,Plumbing,High,2026-11-21 23:15,,Open

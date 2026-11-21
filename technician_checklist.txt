@@ -1,0 +1,38 @@
+==============================================================================================
+           HOSTEL MAINTENANCE -- FLOOR-BY-FLOOR TECHNICIAN CHECKLIST           
+==============================================================================================
+Generated Snapshot : 2026-11-21 22:50
+Source Data        : data.csv
+Total Open Tasks   : 15
+==============================================================================================
+
+[FLOOR 0] - 3 Task(s) Pending
+----------------------------------------------------------------------------------------------
+  [ ] #2   | C47  | Room 009  | Electrical  | Urgency: High   |  87.2 hrs | Score: 123.6 | [SLA BREACHED]
+  [ ] #6   | C51  | Room 016  | Electrical  | Urgency: None   |  56.0 hrs | Score:  98.0 | [SLA BREACHED]
+  [ ] #10  | C56  | Room 002  | Plumbing    | Urgency: High   |  15.3 hrs | Score:  62.6 | [SLA OK]
+
+[FLOOR 1] - 3 Task(s) Pending
+----------------------------------------------------------------------------------------------
+  [ ] #3   | C48  | Room 117  | Plumbing    | Urgency: High   |  82.6 hrs | Score: 121.3 | [SLA BREACHED]
+  [ ] #13  | C54  | Room 108  | Furniture   | Urgency: Medium |  35.2 hrs | Score:  42.6 | [SLA OK]
+  [ ] #14  | C57  | Room 115  | WiFi        | Urgency: Medium |  12.7 hrs | Score:  36.3 | [SLA OK]
+
+[FLOOR 2] - 5 Task(s) Pending
+----------------------------------------------------------------------------------------------
+  [ ] #1   | C43  | Room 215  | Electrical  | Urgency: Low    | 133.3 hrs | Score: 136.7 | [SLA BREACHED]
+  [ ] #5   | C52  | Room 211  | Plumbing    | Urgency: Medium |  53.3 hrs | Score: 101.7 | [SLA BREACHED]
+  [ ] #7   | C49  | Room 204  | WiFi        | Urgency: High   |  72.7 hrs | Score:  96.3 | [SLA BREACHED]
+  [ ] #9   | C55  | Room 219  | Electrical  | Urgency: High   |  27.4 hrs | Score:  68.7 | [SLA OK]
+  [ ] #15  | C58  | Room 206  | Furniture   | Urgency: High   |   9.5 hrs | Score:  34.8 | [SLA OK]
+
+[FLOOR 3] - 4 Task(s) Pending
+----------------------------------------------------------------------------------------------
+  [ ] #4   | C46  | Room 319  | Plumbing    | Urgency: Low    | 100.8 hrs | Score: 120.4 | [SLA BREACHED]
+  [ ] #8   | C50  | Room 302  | Furniture   | Urgency: Low    |  61.8 hrs | Score:  75.9 | [SLA BREACHED]
+  [ ] #11  | C53  | Room 310  | WiFi        | Urgency: High   |  38.6 hrs | Score:  54.3 | [SLA OK]
+  [ ] #12  | C59  | Room 317  | Electrical  | Urgency: Low    |   7.1 hrs | Score:  48.5 | [SLA OK]
+
+==============================================================================================
+                         END OF TECHNICIAN DISPATCH LIST                         
+==============================================================================================

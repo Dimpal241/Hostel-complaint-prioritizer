@@ -15,7 +15,7 @@ import prioritize
 # CONFIGURATION
 # ==============================================================================
 CSV_FILEPATH = Path("data.csv")
-RETENTION_DAYS = 7  # Days to keep Resolved complaints before auto-cleaning
+RETENTION_DAYS = 7  # Days threshold when manual cleanup button is clicked
 FIELDNAMES = [
     "complaint_id",
     "floor",
@@ -61,7 +61,7 @@ def save_data(rows, filepath: Path = CSV_FILEPATH):
 
 def cleanup_old_resolved(rows, ref_time: datetime, retention_days: int = RETENTION_DAYS):
     """
-    Remove Resolved rows older than retention_days.
+    Remove Resolved rows older than retention_days (triggered manually via sidebar button).
     Returns (cleaned_rows, removed_count).
     """
     kept_rows = []
@@ -266,9 +266,7 @@ def mark_complaint_resolved(cid: str, filepath: Path = CSV_FILEPATH):
             break
 
     if updated:
-        ref_time = prioritize.get_reference_time()
-        cleaned_rows, _ = cleanup_old_resolved(rows, ref_time, RETENTION_DAYS)
-        save_data(cleaned_rows, filepath)
+        save_data(rows, filepath)
 
     return updated
 
@@ -290,10 +288,7 @@ def append_complaint(floor: str, room_no: str, category: str, urgency: str, file
         "status": "Open",
     }
     rows.append(new_row)
-
-    ref_time = prioritize.get_reference_time()
-    cleaned_rows, _ = cleanup_old_resolved(rows, ref_time, RETENTION_DAYS)
-    save_data(cleaned_rows, filepath)
+    save_data(rows, filepath)
 
     return next_id
 
@@ -330,7 +325,7 @@ st.markdown(
 st.title("🏢 Girls' Hostel-3 (GH-3) Maintenance Desk")
 st.caption("Caretaker Operational Tool — Real-time Priority Queue & Floor Dispatch")
 
-# Load and auto-cleanup data on initial load
+# Load data without auto-deleting any rows
 all_rows = load_data(CSV_FILEPATH)
 
 # Determine reference timestamp
@@ -340,13 +335,6 @@ for r in all_rows:
     if p_dt and (latest_dt is None or p_dt > latest_dt):
         latest_dt = p_dt
 ref_time = prioritize.get_reference_time(latest_logged_dt=latest_dt)
-
-# Run auto-cleanup for resolved complaints older than RETENTION_DAYS
-cleaned_rows, auto_removed = cleanup_old_resolved(all_rows, ref_time, RETENTION_DAYS)
-if auto_removed > 0:
-    save_data(cleaned_rows, CSV_FILEPATH)
-    all_rows = cleaned_rows
-    st.toast(f"🧹 Auto-cleaned {auto_removed} resolved complaint(s) older than {RETENTION_DAYS} days.", icon="ℹ️")
 
 # Filter open complaints and compute priority scores
 open_rows = [r for r in all_rows if r.get("status", "").strip().lower() == "open"]
@@ -429,7 +417,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.header("🧹 Database Maintenance")
-    st.caption(f"Resolved complaints older than **{RETENTION_DAYS} days** are purged automatically on load/update.")
+    st.caption(f"Manually remove resolved complaints older than **{RETENTION_DAYS} days** to keep the database compact.")
 
     if st.button("Clean Up Old Resolved Rows Now", use_container_width=True):
         cleaned_now, removed_now = cleanup_old_resolved(all_rows, ref_time, RETENTION_DAYS)
@@ -437,7 +425,7 @@ with st.sidebar:
         if removed_now > 0:
             st.success(f"Removed {removed_now} resolved record(s) older than {RETENTION_DAYS} days.")
         else:
-            st.info("Database is already clean! No resolved rows older than 7 days.")
+            st.info(f"Database is already clean! No resolved rows older than {RETENTION_DAYS} days.")
         st.rerun()
 
 
@@ -457,7 +445,6 @@ with tab1:
     if not scored_open:
         st.success("🎉 All complaints are resolved! No pending tasks.")
     else:
-        # Priority dispatch actions (allows warden to dispatch in priority order directly)
         priority_doc = generate_work_order_word_doc("Overall Priority Queue (Urgent First)", scored_open, ref_time, show_floor=True)
         priority_wa = generate_whatsapp_text("Overall Priority Queue (Urgent First)", scored_open, include_floor=True)
 
@@ -554,7 +541,6 @@ with tab2:
 
         sorted_floor_keys = sorted(floors_dict.keys(), key=floor_num_key)
 
-        # Floor selector so the user only sees one floor at a time
         selected_floor = st.radio(
             "Choose Floor to Dispatch:",
             options=sorted_floor_keys,
@@ -573,7 +559,6 @@ with tab2:
             st.markdown(f"### 🏢 {floor_label} &nbsp; `({len(tasks)} Total Pending Tasks)`")
             st.write("")
 
-            # Subdivide floor tasks by category / technician trade
             trades_on_floor = {}
             for t in tasks:
                 trades_on_floor.setdefault(t["category"], []).append(t)
@@ -603,7 +588,6 @@ with tab2:
                         use_container_width=True,
                     )
 
-                # List the tasks for this technician WITHOUT tick box
                 for t in trade_tasks:
                     cid = t["complaint_id"]
                     room = t["room_no"]
